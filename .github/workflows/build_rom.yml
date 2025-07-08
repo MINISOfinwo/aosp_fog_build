@@ -1,0 +1,44 @@
+name: Build AOSP 13 for Redmi 10C (fog)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y openjdk-11-jdk git wget curl repo unzip bc build-essential python3
+
+    - name: Initialize AOSP 13 repo
+      run: |
+        mkdir aosp && cd aosp
+        repo init -u https://android.googlesource.com/platform/manifest -b android-13.0.0_r100
+        repo sync -j$(nproc) --force-sync
+
+    - name: Clone device, vendor, and kernel trees
+      run: |
+        cd aosp
+        git clone https://github.com/ProjectElixir-Devices/device_xiaomi_fog.git -b aosp-13
+        git clone https://github.com/ProjectElixir-Devices/vendor_xiaomi_fog.git  -b aosp-13
+        git clone https://github.com/ProjectElixir-Devices/device_xiaomi_fog-kernel.git -b aosp-13
+
+    - name: Build AOSP
+      run: |
+        cd aosp
+        source build/envsetup.sh
+        lunch aosp_fog-userdebug
+        make bacon -j$(nproc)
+
+    - name: Upload ROM
+      uses: actions/upload-artifact@v3
+      with:
+        name: aosp13-fog-output
+        path: aosp/out/target/product/fog/*.zip
