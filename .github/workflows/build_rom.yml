@@ -38,7 +38,7 @@ jobs:
         make bacon -j$(nproc)
 
     - name: Upload ROM
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: aosp13-fog-output
         path: aosp/out/target/product/fog/*.zip
