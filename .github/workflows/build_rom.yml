@@ -42,3 +42,29 @@ jobs:
       with:
         name: aosp13-fog-output
         path: aosp/out/target/product/fog/*.zip
+
+
+            - name: Build AOSP
+      run: |
+        cd aosp
+        source build/envsetup.sh
+        lunch aosp_fog-userdebug
+        make bacon -j$(nproc)
+
+    - name: Upload ROM
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: aosp13-fog-output
+        path: aosp/out/target/product/fog/*.zip
+
+    - name: Upload logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs
+        path: |
+          aosp/out/*.log
+          aosp/out/target/product/fog/*.log
+          aosp/build.log
+
